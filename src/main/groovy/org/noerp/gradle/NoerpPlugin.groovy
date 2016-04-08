@@ -7,75 +7,137 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.internal.reflect.Instantiator;
+
+import org.noerp.gradle.conventions.NoerpSubConvention
 import org.noerp.gradle.task.*
 
+import javax.inject.Inject;
+
+/**
+ * NoERP插件
+ * 
+ * @author Kevin
+ *
+ */
 class NoerpPlugin implements Plugin<Project> {
 
-	void apply (Project project) {
-		init(project)
-		setupTask(project)
+	/**
+	 * 插件名称
+	 */
+	static final String NOERP_PLUGIN_NAME = "noerp"
+
+	/**
+	 * 根项目
+	 */
+	private Project project
+	
+	private final Instantiator instantiator;
+	
+	@Inject
+	public NoerpPlugin(Instantiator instantiator) {
+		this.instantiator = instantiator;
+	}
+	
+	void apply(final Project project) {
+		this.project = project
+		addPluginConvention()
+		init()
+		setupTasks()
 	}
 
-	void init(Project project){
-
-		project.defaultTasks 'build'
-
-		project.allprojects {
-		    repositories {
-		    	mavenCentral()
-		        jcenter()
-		    }
-		}
-
+	/**
+	 * 默认配置
+	 */
+	private void addPluginConvention() {
+		NoerpPluginConvention noerpPluginConvention = instantiator.newInstance(NoerpPluginConvention.class, project)
+		project.getConvention().getPlugins().put("noerp", noerpPluginConvention)
 		project.subprojects.each {subproject->
+			subproject.convention.plugins.noerp = new NoerpSubConvention(subproject)
+		}
+	}
 
-			subproject.apply(plugin:JavaPlugin)
-			subproject.apply(plugin:GroovyPlugin)
-
-    		subproject.convention.plugins.noerp = new NoerpPluginConvention(subproject)
-			
+	/**
+	 * 初始化
+	 */
+	void init() {
+		
+		//只有启用gradle的eclipse插件,并且未启用java插件，才启用自定义IDE插件
+		if(project.plugins.hasPlugin(EclipsePlugin)){
+			if(!project.plugins.hasPlugin(JavaPlugin)){
+				project.apply(plugin: NoerpEclipsePlugin)
+			}
+		}
+		
+		//子项目配置group
+		project.subprojects.each {subproject->
 			subproject.configurations {
 				runlib {
 					description = "NoERP copy libs for run"
 					transitive = false
 				}
-				compile {
-					extendsFrom runlib
-				}
+				compile { extendsFrom runlib }
 			}
-			
-			subproject.tasks.withType(Jar.class, new Action<Jar>(){
-				void execute(Jar jar){
-					jar.doLast {
-						subproject.copy {
-							from subproject.configurations.runlib.copy().files{(it instanceof ModuleDependency)}.flatten().unique()
-							into "lib"
-						}
-					}
-				}
-			})
 		}
 	}
 
-	void setupTask(Project project){
-		project.task("install", type: InstallTask) {
+	/**
+	 * 设置任务
+	 */
+	void setupTasks(){
+		
+		NoerpPluginConvention noerpConvention = project.getConvention().getPlugin(NoerpPluginConvention.class);
+
+		project.tasks.create("install", InstallTask)
+		project.tasks.create("update", UpdateTask)
+
+		project.task("start", type: RunTask){
+			description = "Start your application"
+			configTask(noerpConvention)
 		}
-		project.task("update", type: UpdateTask){
-		}
-		project.task("start", type:StartTask){
-		}
-		project.task("start-debug", type: StartTask){
+
+		project.task("start-debug", type: RunTask){
+			description = "Start your application with debug model"
 			debug = true
+			configTask(noerpConvention)
 		}
-		project.task("stop", type: StopTask){
-		}
-		/*
-		project.task("create-component", type: CreateComponentTask){
-			
-		}
-		project.task("generate-CRUD", type: CreateComponentTask){
-			
-		}*/
-	}
 
+		project.task("stop", type: RunTask){
+			description = "Stop noerp application"
+			args = ["-shutdown"]
+			configTask(noerpConvention)
+		}
+		
+		project.task("status", type: RunTask){
+			description = "Get current status of your application"
+			args = ["-status"]
+			configTask(noerpConvention)
+		}
+		
+		project.task("load-seed", type: RunTask){
+			description = "Load ONLY the seed data for your application"
+			args = ["load-data", "readers=seed"]
+			configTask(noerpConvention)
+		}
+		
+		project.task("load-file", type: RunTask){
+			description = "Load data using the command line argument 'data-file' to load data "
+						  
+			args = ["load-data", "readers=seed"]
+			configTask(noerpConvention)
+		}
+		
+		project.task("run-test", type: RunTask){
+			description = "Run NoERP default tests; you have to manually execute 'gradle load-demo' before (and if needed even clear your data before) and see results in runtime/logs/test-results/html/all-tests.html. Use -Dportoffset=portNumber to shift all ports with the portNumber value."
+			args = ["test"]
+			configTask(noerpConvention)
+		}
+
+		/*
+		 project.task("create-component", type: CreateComponentTask){
+		 }
+		 project.task("generate-CRUD", type: CreateComponentTask){
+		 }*/
+	}
 }
