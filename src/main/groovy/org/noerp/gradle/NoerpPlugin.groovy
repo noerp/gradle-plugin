@@ -128,6 +128,27 @@ class NoerpPlugin implements Plugin<Project> {
 			configTask(noerpConvention)
 		}
 		
+		project.task('load-admin-user-login', type: RunTask){
+			description = "Create admin user with temporary password equal to noerp. You must provide userLoginId"
+			/*
+			args = ["load-data", "file=/runtime/tmp/AdminUserLoginData.xml"]
+			configTask(noerpConvention)
+			
+			doFirst {
+				copy {
+					from ("${rootDir}/vendor/noerp/resources/templates/AdminUserLoginData.xml") {
+						filter(ReplaceTokens, tokens: [userLoginId: userLoginId])
+					}
+					into "${rootDir}/runtime/tmp/"
+				}
+			}
+			
+			doLast {
+				delete("${rootDir}/runtime/tmp/AdminUserLoginData.xml");
+			}
+			*/
+		}
+		
 		project.task("run-test", type: RunTask){
 			description = "Run NoERP default tests; you have to manually execute 'gradle load-demo' before (and if needed even clear your data before) and see results in runtime/logs/test-results/html/all-tests.html. Use -Dportoffset=portNumber to shift all ports with the portNumber value."
 			args = ["test"]
