@@ -35,6 +35,8 @@ class NoerpSubConvention {
 		def vendorName = args[0]
 		def module = args[1]
 		def version = args[2]
+		
+		//todo: download vendor
 
 		return project.project(":" + vendorName + "-" + module)
 	}

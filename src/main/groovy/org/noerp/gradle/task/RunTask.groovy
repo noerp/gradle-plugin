@@ -33,7 +33,7 @@ class RunTask extends JavaExec {
 	 * 配置运行参数
 	 */
 	void configRunArgs(){
-		this.classpath = this.pluginConvention.runClasspath
+		this.classpath += this.pluginConvention.runClasspath
 		this.conventionMapping.main = { this.pluginConvention.mainClassName }
 		this.conventionMapping.jvmArgs = { this.pluginConvention.runDefaultJvmArgs }
 	}

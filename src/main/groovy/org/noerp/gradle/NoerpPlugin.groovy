@@ -12,6 +12,7 @@ import org.gradle.internal.reflect.Instantiator;
 
 import org.noerp.gradle.conventions.NoerpSubConvention
 import org.noerp.gradle.task.*
+import org.noerp.gradle.extention.NoerpExtention
 
 import javax.inject.Inject;
 
@@ -70,6 +71,9 @@ class NoerpPlugin implements Plugin<Project> {
 			}
 		}
 		
+		//添加项目扩展配置
+		project.extensions.create("noerp", NoerpExtention)
+		
 		//子项目配置group
 		project.subprojects.each {subproject->
 			subproject.configurations {
@@ -93,43 +97,44 @@ class NoerpPlugin implements Plugin<Project> {
 		project.tasks.create("update", UpdateTask)
 
 		project.task("start", type: RunTask){
-			description = "Start your application"
+			description = "Start your application."
 			configTask(noerpConvention)
 		}
 
-		project.task("start-debug", type: RunTask){
-			description = "Start your application with debug model"
+		project.task("startDebug", type: RunTask){
+			description = "Start your application with debug model."
 			debug = true
 			configTask(noerpConvention)
 		}
 
 		project.task("stop", type: RunTask){
-			description = "Stop noerp application"
+			description = "Stop your noerp application."
 			args = ["-shutdown"]
 			configTask(noerpConvention)
 		}
 		
 		project.task("status", type: RunTask){
-			description = "Get current status of your application"
+			description = "Get current status of your application."
 			args = ["-status"]
 			configTask(noerpConvention)
 		}
 		
-		project.task("load-seed", type: RunTask){
-			description = "Load ONLY the seed data for your application"
+		project.task("loadSeed", type: RunTask){
+			description = "Load ONLY the seed data for your application."
 			args = ["load-data", "readers=seed"]
 			configTask(noerpConvention)
 		}
 		
-		project.task("load-file", type: RunTask){
-			description = "Load data using the command line argument 'data-file' to load data "
+		project.task("loadFile", type: RunTask){
+			description = "Load data using the command line argument 'data-file' to load data."
 						  
 			args = ["load-data", "readers=seed"]
 			configTask(noerpConvention)
 		}
 		
-		project.task('load-admin-user-login', type: RunTask){
-			description = "Create admin user with temporary password equal to noerp. You must provide userLoginId"
+		project.task('loadAdminUserLogin', type: RunTask){
+			description = "Create admin user with temporary password equal to noerp. You must provide userLoginId."
+			configTask(noerpConvention)
 			/*
 			args = ["load-data", "file=/runtime/tmp/AdminUserLoginData.xml"]
 			configTask(noerpConvention)
@@ -149,16 +154,18 @@ class NoerpPlugin implements Plugin<Project> {
 			*/
 		}
 		
-		project.task("run-test", type: RunTask){
+		project.task("runTest", type: RunTask){
 			description = "Run NoERP default tests; you have to manually execute 'gradle load-demo' before (and if needed even clear your data before) and see results in runtime/logs/test-results/html/all-tests.html. Use -Dportoffset=portNumber to shift all ports with the portNumber value."
 			args = ["test"]
 			configTask(noerpConvention)
 		}
 
-		/*
-		 project.task("create-component", type: CreateComponentTask){
+		 project.task("createComponent", type: RunTask){
+			 configTask(noerpConvention)
 		 }
-		 project.task("generate-CRUD", type: CreateComponentTask){
-		 }*/
+		 
+		 project.task("generateCRUD", type: RunTask){
+			 configTask(noerpConvention)
+		 }
 	}
 }

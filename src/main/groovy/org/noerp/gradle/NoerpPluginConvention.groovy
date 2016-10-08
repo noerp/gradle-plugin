@@ -37,7 +37,19 @@ class NoerpPluginConvention {
 	 * @param project
 	 */
 	public NoerpPluginConvention(Project project) {
+		
 		runClasspath = project.files("bin/noerp.jar")
+		
+		project.subprojects.each {subproject->
+			runClasspath = runClasspath + subproject.sourceSets.main.runtimeClasspath
+		}
+		
+		runClasspath.each{
+			println it
+		}
+		
+		//runClasspath = project.files("bin/noerp.jar")
+		
 		mainClassName = "org.noerp.base.start.Start"
 		runDefaultJvmArgs = ["-Xms128M", "-Xmx512M", "-Dfile.encoding=UTF-8"]
 	}
