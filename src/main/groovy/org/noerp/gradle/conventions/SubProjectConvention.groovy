@@ -8,7 +8,7 @@ import org.gradle.api.Project
  * @author Kevin
  *
  */
-class NoerpSubConvention {
+class SubProjectConvention {
 	
 	/**
 	 * 当前项目
@@ -19,7 +19,7 @@ class NoerpSubConvention {
 	 * 构造方法
 	 * @param project
 	 */
-	public NoerpSubConvention(Project project) {
+	public SubProjectConvention(Project project) {
 		this.project = project
 	}
 

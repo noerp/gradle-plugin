@@ -1,4 +1,4 @@
-package org.noerp.gradle
+package org.noerp.gradle.conventions
 
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -9,7 +9,7 @@ import org.gradle.api.file.FileCollection
  * @author Kevin
  *
  */
-class NoerpPluginConvention {
+class RootProjectConvention {
 	
 	/**
 	 * 任务分组
@@ -36,20 +36,8 @@ class NoerpPluginConvention {
 	 * 
 	 * @param project
 	 */
-	public NoerpPluginConvention(Project project) {
-		
+	public RootProjectConvention(Project project) {
 		runClasspath = project.files("bin/noerp.jar")
-		
-		project.subprojects.each {subproject->
-			runClasspath = runClasspath + subproject.sourceSets.main.runtimeClasspath
-		}
-		
-		runClasspath.each{
-			println it
-		}
-		
-		//runClasspath = project.files("bin/noerp.jar")
-		
 		mainClassName = "org.noerp.base.start.Start"
 		runDefaultJvmArgs = ["-Xms128M", "-Xmx512M", "-Dfile.encoding=UTF-8"]
 	}

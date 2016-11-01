@@ -1,8 +1,7 @@
 package org.noerp.gradle.task
 
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.JavaExec
-import org.noerp.gradle.NoerpPluginConvention
+import org.noerp.gradle.conventions.RootProjectConvention
 
 /**
  * 运行任务
@@ -13,36 +12,40 @@ import org.noerp.gradle.NoerpPluginConvention
 class RunTask extends JavaExec {
 	
 	/**
-	 * 插件默认配置
+	 * 构造方法
 	 */
-	NoerpPluginConvention pluginConvention
+	RunTask(){
+		super()
+		configTask()
+	}
+	
+	@Override
+	public void exec(){
+		
+		//add each project runtime classpath to root classpath
+		project.subprojects.each {subproject->
+			//classpath = classpath + subproject.sourceSets.main.runtimeClasspath
+		}
+		
+		classpath.each{
+			println it
+		}
+		
+		println getCommandLine()
+		
+		super.exec()
+	}
 
 	/**
 	 * 配置任务
-	 * @param pluginConvention
 	 */
-	void configTask(NoerpPluginConvention pluginConvention){
-		this.pluginConvention = pluginConvention
-		this.group = pluginConvention.taskGroup
+	void configTask(){
 		
-		configRunArgs()
-		configDependsOn()
-	}
-	
-	/**
-	 * 配置运行参数
-	 */
-	void configRunArgs(){
-		this.classpath += this.pluginConvention.runClasspath
-		this.conventionMapping.main = { this.pluginConvention.mainClassName }
-		this.conventionMapping.jvmArgs = { this.pluginConvention.runDefaultJvmArgs }
-	}
-	
-	/**
-	 * 配置依赖关系
-	 */
-	void configDependsOn(){
+		RootProjectConvention pluginConvention = project.convention.plugins.noerp
 		
+		group = pluginConvention.taskGroup
+		classpath += pluginConvention.runClasspath
+		conventionMapping.main = { pluginConvention.mainClassName }
+		conventionMapping.jvmArgs = { pluginConvention.runDefaultJvmArgs }
 	}
-	
 }
